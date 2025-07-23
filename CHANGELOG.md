@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.0.2] - 2025-07-23
+- Replaced GLSL shader with `CustomPainter` for chaotic line animations, eliminating the need for external shader files.
+
 ## [0.0.1] - 2025-07-23
 - Initial release with the following features:
     - **Chaotic Animations**: Generates random, animated lines using a GLSL shader when the button is tapped.
