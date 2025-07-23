@@ -1,6 +1,7 @@
 # Chaos Button
 **Chaos Button** is a dynamic Flutter package that provides a customizable button with chaotic random line animations powered by shaders. When tapped, the button displays mesmerizing animated lines that peak and fade, creating a unique visual effect for your Flutter applications.
 
+<img width="900" height="900" alt="Image" src="https://github.com/user-attachments/assets/f4adba8f-a48a-454b-a9f1-396718b48006" />
 
 ## Features
 - **Chaotic Animations**: Generates random, animated lines using a GLSL shader when the button is tapped.
