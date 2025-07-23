@@ -91,7 +91,7 @@ class MyApp extends StatelessWidget {
 
 ## Changelog
 
-See the [CHANGELOG.md]() file for updates.
+See the [CHANGELOG.md](https://github.com/hassan21zaheer/chaos-button/blob/main/CHANGELOG.md) file for updates.
 
 ## License
 
