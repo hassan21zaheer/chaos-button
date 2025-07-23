@@ -1,6 +1,6 @@
 name: chaosbutton
 description: "A customizable Flutter button with chaotic random line animations using shaders."
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/hassan21zaheer/chaos-button
 
 environment:
@@ -21,8 +21,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-  shaders:
-    - shaders/chaos.glsl
 
   # To add assets to your package, add an assets section, like this:
   # assets:

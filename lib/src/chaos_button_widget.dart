@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui; // Import dart:ui for FragmentProgram
-import 'package:flutter/services.dart' show rootBundle;
+import 'dart:math' as math;
 
 class ChaosButton extends StatefulWidget {
   final double width;
@@ -31,10 +30,10 @@ class ChaosButton extends StatefulWidget {
   ChaosButtonState createState() => ChaosButtonState();
 }
 
-class ChaosButtonState extends State<ChaosButton> with SingleTickerProviderStateMixin {
+class ChaosButtonState extends State<ChaosButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _tapAnimation;
-  late Future<ui.FragmentProgram> _shaderProgram;
 
   @override
   void initState() {
@@ -46,8 +45,6 @@ class ChaosButtonState extends State<ChaosButton> with SingleTickerProviderState
     _tapAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
-    // Load the shader from assets
-    _shaderProgram = ui.FragmentProgram.fromAsset('shaders/chaos.glsl');
   }
 
   @override
@@ -72,27 +69,20 @@ class ChaosButtonState extends State<ChaosButton> with SingleTickerProviderState
           color: widget.backgroundColor,
           borderRadius: widget.borderRadius,
         ),
-        child: FutureBuilder<ui.FragmentProgram>(
-          future: _shaderProgram,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return AnimatedBuilder(
-                animation: _tapAnimation,
-                builder: (context, child) {
-                  return CustomPaint(
-                    painter: ChaosPainter(
-                      shader: snapshot.data!.fragmentShader(),
-                      tapValue: _tapAnimation.value,
-                      resolution: Size(widget.width, widget.height),
-                      time: _controller.value,
-                      lineColors: widget.lineColors,
-                    ),
-                    child: Container(),
-                  );
-                },
-              );
-            }
-            return Container(color: widget.backgroundColor);
+        child: AnimatedBuilder(
+          animation: _tapAnimation,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: ChaosPainter(
+                tapValue: _tapAnimation.value,
+                resolution: Size(widget.width, widget.height),
+                time: _controller.value *
+                    widget.animationDuration.inMilliseconds /
+                    1000.0,
+                lineColors: widget.lineColors,
+              ),
+              child: Container(),
+            );
           },
         ),
       ),
@@ -101,14 +91,12 @@ class ChaosButtonState extends State<ChaosButton> with SingleTickerProviderState
 }
 
 class ChaosPainter extends CustomPainter {
-  final ui.FragmentShader shader;
   final double tapValue;
   final Size resolution;
   final double time;
   final List<Color> lineColors;
 
   ChaosPainter({
-    required this.shader,
     required this.tapValue,
     required this.resolution,
     required this.time,
@@ -117,23 +105,44 @@ class ChaosPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    shader
-      ..setFloat(0, resolution.width)
-      ..setFloat(1, resolution.height)
-      ..setFloat(2, time)
-      ..setFloat(3, tapValue);
+    final random = math.Random(42); // Consistent seed for reproducible chaos
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
 
-    // Set line colors (limited to 4 for shader compatibility)
-    for (int i = 0; i < 4; i++) {
-      final color = i < lineColors.length ? lineColors[i] : Colors.white;
-      shader
-        ..setFloat(4 + i * 3, color.red / 255.0)
-        ..setFloat(5 + i * 3, color.green / 255.0)
-        ..setFloat(6 + i * 3, color.blue / 255.0);
+// Draw multiple sets of lines to mimic shader complexity
+    for (int set = 0; set < 2; set++) {
+// Two sets: thicker lines (like shader's first loop) and thinner lines (like second loop)
+      final lineCount = set == 0 ? 20 : 40; // More lines in second set
+      final maxThickness = set == 0 ? 2.0 : 0.5;
+      final amplitude = set == 0 ? 20.0 : 10.0;
+
+      for (int i = 0; i < lineCount; i++) {
+// Select color based on index
+        final colorIndex = i % 4;
+        final color = colorIndex < lineColors.length
+            ? lineColors[colorIndex]
+            : Colors.white;
+        paint
+          ..color = color.withOpacity(tapValue * 0.8) // Fade with tap animation
+          ..strokeWidth = maxThickness * (0.5 + random.nextDouble() * 0.5);
+
+// Generate chaotic line path
+        final y = i * size.height / lineCount;
+        final points = <Offset>[];
+        for (double x = 0; x <= size.width; x += 2.0) {
+// Simulate noise with sine and random variation
+          final noise = math.sin(x * 0.05 + time * 0.1 + i) * amplitude +
+              random.nextDouble() * amplitude * 0.5;
+          points.add(Offset(x, y + noise));
+        }
+
+// Draw line segments
+        for (int j = 0; j < points.length - 1; j++) {
+          canvas.drawLine(points[j], points[j + 1], paint);
+        }
+      }
     }
-
-    final paint = Paint()..shader = shader;
-    canvas.drawRect(Offset.zero & size, paint);
   }
 
   @override
